@@ -147,5 +147,6 @@ class financialtracking {
                 System.out.println("Invalid option, please choose 1-6.");
             }
         }
+        scanner.close();
     }
 }
