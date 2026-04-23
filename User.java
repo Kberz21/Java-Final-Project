@@ -21,7 +21,6 @@ public class User {
     public void setincome(double new_income){
         this.total_income=new_income;
     }
-
     public String getname(){
         return Username;
     }

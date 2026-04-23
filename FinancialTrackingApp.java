@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-class financialtracking {
+class FinancialTrackingApp {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int option = 0;
