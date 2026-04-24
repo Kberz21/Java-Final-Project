@@ -1,3 +1,4 @@
+package src.com.financialtracking;
 public class User {
     private String Username;
     private String Password;

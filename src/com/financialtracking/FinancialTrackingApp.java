@@ -1,3 +1,4 @@
+package src.com.financialtracking;
 import java.util.Scanner;
 
 class FinancialTrackingApp {
