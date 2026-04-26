@@ -109,7 +109,7 @@ public class AuthenticationManager {
         return trackers.get(username);
     }
 
-    /**
+        /**
      * Load user tracker from file (ONLY called once per user session)
      */
     private void loadUserTracker(String username) 
@@ -119,7 +119,6 @@ public class AuthenticationManager {
             throw new AuthenticationException("User not found");
         }
 
-        // Check if already loaded in this session
         if (trackers.containsKey(username)) {
             return;
         }
@@ -130,23 +129,52 @@ public class AuthenticationManager {
         tracker.setTransactions(transactions);
         loadedTransactions.put(username, new ArrayList<>(transactions));
         
-        // Recalculate balance
-        double balance = 0;
+        // Load savings goal if exists
+        try {
+            SavingsGoal savingsGoal = FileManager.loadSavingsGoal(username);
+            if (savingsGoal != null) {
+                tracker.setSavingsGoal(savingsGoal);
+            }
+        } catch (FileOperationException e) {
+            System.err.println("Warning: Could not load savings goal: " + e.getMessage());
+        }
+
+        // Load spending limit if exists
+        try {
+            SpendingLimit spendingLimit = FileManager.loadSpendingLimit(username);
+            if (spendingLimit != null) {
+                tracker.setSpendingLimit(spendingLimit);
+            }
+        } catch (FileOperationException e) {
+            System.err.println("Warning: Could not load spending limit: " + e.getMessage());
+        }
+        
+        // Recalculate balances
+        double checkingBalance = 0;
+        double savingsBalance = 0;
+        
         for (Transaction transaction : transactions) {
             if (transaction.getType() == Transaction.TransactionType.INCOME) {
-                balance += transaction.getAmount();
+                checkingBalance += transaction.getAmount();
             } else {
-                balance -= transaction.getAmount();
+                checkingBalance -= transaction.getAmount();
             }
         }
-        tracker.setBalance(balance);
+        
+        // Adjust balances based on current savings goal
+        if (tracker.getSavingsGoal() != null) {
+            savingsBalance = tracker.getSavingsGoal().getCurrentSavings();
+        }
+        
+        tracker.setCheckingBalance(checkingBalance);
+        tracker.setSavingsBalance(savingsBalance);
         
         trackers.put(username, tracker);
         
         System.out.println("✓ Loaded " + transactions.size() + " transactions for " + username);
     }
 
-    /**
+        /**
      * Save all data for a user
      */
     public void saveUserData(String username) throws FileOperationException, AuthenticationException {
@@ -158,39 +186,19 @@ public class AuthenticationManager {
 
         FileManager.saveUser(tracker.getUser());
         
-        // Get all transactions from tracker
+        // Save transactions
         List<Transaction> allTransactions = tracker.getTransactions();
-        
-        // Get previously loaded transactions
-        List<Transaction> previouslyLoaded = loadedTransactions.getOrDefault(username, new ArrayList<>());
-        
-        System.out.println("DEBUG: Previously loaded: " + previouslyLoaded.size() + 
-                         " transactions, Current: " + allTransactions.size() + " transactions");
-        
-        // Save the complete list (not appending)
         FileManager.saveAllTransactions(username, allTransactions);
+        
+        // Save savings goal
+        FileManager.saveSavingsGoal(username, tracker.getSavingsGoal());
+        
+        // Save spending limit
+        FileManager.saveSpendingLimit(username, tracker.getSpendingLimit());
         
         // Update the loaded state
         loadedTransactions.put(username, new ArrayList<>(allTransactions));
         
         System.out.println("✓ Data saved for user: " + username);
-    }
-
-    /**
-     * Delete user account
-     */
-    public void deleteUserAccount(String username) throws FileOperationException {
-        users.remove(username);
-        trackers.remove(username);
-        loadedTransactions.remove(username);
-        FileManager.deleteUser(username);
-        System.out.println("✓ User account deleted successfully");
-    }
-
-    /**
-     * Check if user exists
-     */
-    public boolean userExists(String username) {
-        return users.containsKey(username);
     }
 }

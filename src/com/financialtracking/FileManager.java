@@ -203,4 +203,99 @@ public class FileManager {
                 "Error deleting user: " + e.getMessage(), e);
         }
     }
+        /**
+     * Save savings goal for a user
+     */
+    public static void saveSavingsGoal(String username, SavingsGoal goal) 
+            throws FileOperationException {
+        try {
+            String goalFile = String.format("data/%s_savings_goal.txt", username);
+            if (goal == null) {
+                Files.deleteIfExists(Paths.get(goalFile));
+                return;
+            }
+            List<String> lines = new ArrayList<>();
+            lines.add(goal.toFileFormat());
+            Files.write(Paths.get(goalFile), lines);
+            System.out.println("✓ Savings goal saved");
+        } catch (IOException e) {
+            throw new FileOperationException(
+                "Error saving savings goal: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Load savings goal for a user
+     */
+    public static SavingsGoal loadSavingsGoal(String username) 
+            throws FileOperationException {
+        try {
+            String goalFile = String.format("data/%s_savings_goal.txt", username);
+            
+            if (!Files.exists(Paths.get(goalFile))) {
+                return null;
+            }
+
+            List<String> lines = Files.readAllLines(Paths.get(goalFile));
+            if (lines.isEmpty()) {
+                return null;
+            }
+
+            return SavingsGoal.fromFileFormat(lines.get(0));
+        } catch (IOException e) {
+            throw new FileOperationException(
+                "Error loading savings goal: " + e.getMessage(), e);
+        } catch (FinancialException e) {
+            throw new FileOperationException(
+                "Error parsing savings goal: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Save spending limit for a user
+     */
+    public static void saveSpendingLimit(String username, SpendingLimit limit) 
+            throws FileOperationException {
+        try {
+            String limitFile = String.format("data/%s_spending_limit.txt", username);
+            if (limit == null) {
+                Files.deleteIfExists(Paths.get(limitFile));
+                return;
+            }
+            List<String> lines = new ArrayList<>();
+            lines.add(limit.toFileFormat());
+            Files.write(Paths.get(limitFile), lines);
+            System.out.println("✓ Spending limit saved");
+        } catch (IOException e) {
+            throw new FileOperationException(
+                "Error saving spending limit: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Load spending limit for a user
+     */
+    public static SpendingLimit loadSpendingLimit(String username) 
+            throws FileOperationException {
+        try {
+            String limitFile = String.format("data/%s_spending_limit.txt", username);
+            
+            if (!Files.exists(Paths.get(limitFile))) {
+                return null;
+            }
+
+            List<String> lines = Files.readAllLines(Paths.get(limitFile));
+            if (lines.isEmpty()) {
+                return null;
+            }
+
+            return SpendingLimit.fromFileFormat(lines.get(0));
+        } catch (IOException e) {
+            throw new FileOperationException(
+                "Error loading spending limit: " + e.getMessage(), e);
+        } catch (FinancialException e) {
+            throw new FileOperationException(
+                "Error parsing spending limit: " + e.getMessage(), e);
+        }
+    }
 }

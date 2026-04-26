@@ -28,21 +28,66 @@ public class FinancialTrackerApp {
     }
 
     /**
-     * Display tracker menu for logged-in user
+     * Tracker menu for logged-in user
      */
-    private void displayTrackerMenu() {
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("Welcome, " + currentUsername + "!");
-        System.out.println("Current Balance: $" + 
-                          String.format("%.2f", currentTracker.getBalance()));
-        System.out.println("=".repeat(50));
-        System.out.println("1. Add Income");
-        System.out.println("2. Add Expense");
-        System.out.println("3. View Balance");
-        System.out.println("4. View All Transactions");
-        System.out.println("5. View Summary");
-        System.out.println("6. Logout");
-        System.out.println("=".repeat(50));
+    private void trackerMenu() {
+        boolean loggedIn = true;
+
+        while (loggedIn) {
+            try {
+                displayTrackerMenu();
+                System.out.print("Select an option: ");
+                String choice = scanner.nextLine().trim();
+
+                switch (choice) {
+                    case "1":
+                        handleAddIncome();
+                        break;
+                    case "2":
+                        handleAddExpense();
+                        break;
+                    case "3":
+                        displayBalance();
+                        break;
+                    case "4":
+                        currentTracker.printAllTransactions();
+                        break;
+                    case "5":
+                        currentTracker.printSummary();
+                        break;
+                    case "6":
+                        handleSavingsLimitsMenu();
+                        break;
+                    case "7":
+                        try {
+                            authManager.saveUserData(currentUsername);
+                        } catch (FileOperationException | AuthenticationException e) {
+                            System.err.println("✗ Error saving data: " + e.getMessage());
+                        }
+                        System.out.println("✓ Logged out successfully!");
+                        currentTracker = null;
+                        currentUsername = null;
+                        loggedIn = false;
+                        break;
+                    default:
+                        System.out.println("✗ Invalid option. Please try again.");
+                }
+            } catch (Exception e) {
+                System.err.println("✗ Error: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Display current balance (updated)
+     */
+    private void displayBalance() {
+        double checkingBalance = currentTracker.getCheckingBalance();
+        double savingsBalance = currentTracker.getSavingsBalance();
+        System.out.println("\n✓ Checking Balance: $" + String.format("%.2f", checkingBalance));
+        System.out.println("✓ Savings Balance:  $" + String.format("%.2f", savingsBalance));
+        System.out.println("✓ Total Balance:    $" + 
+                          String.format("%.2f", checkingBalance + savingsBalance));
     }
 
     /**
@@ -79,54 +124,6 @@ public class FinancialTrackerApp {
             trackerMenu();
         } catch (AuthenticationException | FileOperationException e) {
             System.err.println("✗ Login failed: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Tracker menu for logged-in user
-     */
-    private void trackerMenu() {
-        boolean loggedIn = true;
-
-        while (loggedIn) {
-            try {
-                displayTrackerMenu();
-                System.out.print("Select an option: ");
-                String choice = scanner.nextLine().trim();
-
-                switch (choice) {
-                    case "1":
-                        handleAddIncome();
-                        break;
-                    case "2":
-                        handleAddExpense();
-                        break;
-                    case "3":
-                        displayBalance();
-                        break;
-                    case "4":
-                        currentTracker.printAllTransactions();
-                        break;
-                    case "5":
-                        currentTracker.printSummary();
-                        break;
-                    case "6":
-                        try {
-                            authManager.saveUserData(currentUsername);
-                        } catch (FileOperationException | AuthenticationException e) {
-                            System.err.println("✗ Error saving data: " + e.getMessage());
-                        }
-                        System.out.println("✓ Logged out successfully!");
-                        currentTracker = null;
-                        currentUsername = null;
-                        loggedIn = false;
-                        break;
-                    default:
-                        System.out.println("✗ Invalid option. Please try again.");
-                }
-            } catch (Exception e) {
-                System.err.println("✗ Error: " + e.getMessage());
-            }
         }
     }
 
@@ -182,13 +179,6 @@ public class FinancialTrackerApp {
         }
     }
 
-    /**
-     * Display current balance
-     */
-    private void displayBalance() {
-        double balance = currentTracker.getBalance();
-        System.out.println("\n✓ Current Balance: $" + String.format("%.2f", balance));
-    }
 
     /**
      * Main application loop
@@ -223,5 +213,162 @@ public class FinancialTrackerApp {
         }
 
         scanner.close();
+    }
+        /**
+     * Display new menu for savings and limits
+     */
+    private void displayTrackerMenu() {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("Welcome, " + currentUsername + "!");
+        System.out.println("Checking: $" + String.format("%.2f", currentTracker.getCheckingBalance()) +
+                          " | Savings: $" + String.format("%.2f", currentTracker.getSavingsBalance()));
+        System.out.println("=".repeat(50));
+        System.out.println("1. Add Income");
+        System.out.println("2. Add Expense");
+        System.out.println("3. View Balance");
+        System.out.println("4. View All Transactions");
+        System.out.println("5. View Summary");
+        System.out.println("6. Savings & Limits Management");
+        System.out.println("7. Logout");
+        System.out.println("=".repeat(50));
+    }
+
+    /**
+     * Display savings and limits menu
+     */
+    private void displaySavingsLimitsMenu() {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("SAVINGS & LIMITS MANAGEMENT");
+        System.out.println("=".repeat(50));
+        System.out.println("1. Set Savings Goal");
+        System.out.println("2. Transfer to Savings");
+        System.out.println("3. Withdraw from Savings");
+        System.out.println("4. Set Spending Limit");
+        System.out.println("5. Back to Main Menu");
+        System.out.println("=".repeat(50));
+    }
+
+    /**
+     * Handle savings and limits menu
+     */
+    private void handleSavingsLimitsMenu() {
+        boolean inMenu = true;
+
+        while (inMenu) {
+            try {
+                displaySavingsLimitsMenu();
+                System.out.print("Select an option: ");
+                String choice = scanner.nextLine().trim();
+
+                switch (choice) {
+                    case "1":
+                        handleSetSavingsGoal();
+                        break;
+                    case "2":
+                        handleTransferToSavings();
+                        break;
+                    case "3":
+                        handleWithdrawFromSavings();
+                        break;
+                    case "4":
+                        handleSetSpendingLimit();
+                        break;
+                    case "5":
+                        inMenu = false;
+                        break;
+                    default:
+                        System.out.println("✗ Invalid option. Please try again.");
+                }
+            } catch (Exception e) {
+                System.err.println("✗ Error: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Handle setting savings goal
+     */
+    private void handleSetSavingsGoal() {
+        try {
+            System.out.print("Enter goal name (e.g., 'Vacation', 'Car', 'Emergency Fund'): ");
+            String goalName = scanner.nextLine().trim();
+
+            System.out.print("Enter target amount: $");
+            double targetAmount = Double.parseDouble(scanner.nextLine().trim());
+
+            currentTracker.setSavingsGoal(goalName, targetAmount);
+            authManager.saveUserData(currentUsername);
+        } catch (NumberFormatException e) {
+            System.err.println("✗ Invalid amount. Please enter a valid number.");
+        } catch (FinancialException | FileOperationException | AuthenticationException e) {
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle transfer to savings
+     */
+    private void handleTransferToSavings() {
+        try {
+            if (currentTracker.getSavingsGoal() == null) {
+                System.out.println("✗ No savings goal set. Please set a savings goal first.");
+                return;
+            }
+
+            System.out.print("Enter amount to transfer to savings: $");
+            double amount = Double.parseDouble(scanner.nextLine().trim());
+
+            System.out.print("Enter remark (optional): ");
+            String remark = scanner.nextLine().trim();
+
+            currentTracker.transferToSavings(amount, remark);
+            authManager.saveUserData(currentUsername);
+        } catch (NumberFormatException e) {
+            System.err.println("✗ Invalid amount. Please enter a valid number.");
+        } catch (FinancialException | FileOperationException | AuthenticationException e) {
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle withdraw from savings
+     */
+    private void handleWithdrawFromSavings() {
+        try {
+            if (currentTracker.getSavingsGoal() == null) {
+                System.out.println("✗ No savings account. Please set a savings goal first.");
+                return;
+            }
+
+            System.out.print("Enter amount to withdraw from savings: $");
+            double amount = Double.parseDouble(scanner.nextLine().trim());
+
+            System.out.print("Enter remark (optional): ");
+            String remark = scanner.nextLine().trim();
+
+            currentTracker.withdrawFromSavings(amount, remark);
+            authManager.saveUserData(currentUsername);
+        } catch (NumberFormatException e) {
+            System.err.println("✗ Invalid amount. Please enter a valid number.");
+        } catch (FinancialException | FileOperationException | AuthenticationException e) {
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle setting spending limit
+     */
+    private void handleSetSpendingLimit() {
+        try {
+            System.out.print("Enter monthly spending limit: $");
+            double limitAmount = Double.parseDouble(scanner.nextLine().trim());
+
+            currentTracker.setSpendingLimit(limitAmount);
+            authManager.saveUserData(currentUsername);
+        } catch (NumberFormatException e) {
+            System.err.println("✗ Invalid amount. Please enter a valid number.");
+        } catch (FinancialException | FileOperationException | AuthenticationException e) {
+            System.err.println("✗ Error: " + e.getMessage());
+        }
     }
 }
