@@ -1,43 +1,81 @@
-package src.com.financialtracking;
-public class User {
-    private String Username;
-    private String Password;
-    private double balance;
-    private double total_income;
-    private double total_spending;
-    private double saving_goals;
-    private double spending_limits;
-    
-    public User(String name, String password){
-        this.Username= name;
-        this.Password= password;
-        this.balance=0;
-        this.total_income=0;
-        this.total_spending=0;
+package com.financialtracking;
+
+import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String username;
+    private String passwordHash;
+    private LocalDateTime createdAt;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.passwordHash = hashPassword(password);
+        this.createdAt = LocalDateTime.now();
     }
 
-    public void setbalance(double new_balance){
-        this.balance=new_balance;
+    /**
+     * Hash password using SHA-256 algorithm
+     */
+    public static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password: " + e.getMessage());
+        }
     }
-    public void setincome(double new_income){
-        this.total_income=new_income;
+
+    /**
+     * Verify if provided password matches stored hash
+     */
+    public boolean verifyPassword(String password) {
+        return this.passwordHash.equals(hashPassword(password));
     }
-    public String getname(){
-        return Username;
+
+    // Getters and Setters
+    public String getUsername() {
+        return username;
     }
-    public double getbalance(){
-        return balance;
+
+    public void setUsername(String username) {
+        this.username = username;
     }
-    public double getincome(){
-        return total_income;
+
+    public String getPasswordHash() {
+        return passwordHash;
     }
-    public double getspending(){
-        return total_spending;
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
-    public double getsaving(){
-        return saving_goals;
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
-    public double getlimits(){
-        return spending_limits;
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
